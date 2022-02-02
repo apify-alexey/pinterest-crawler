@@ -1,0 +1,31 @@
+{
+  "title": "Pinterest Crawler",
+  "description": "Get user profile and pins from URLs or names list",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "startUrls": {
+      "title": "Start names or URLs",
+      "type": "array",
+      "description": "URLs to start with.",
+      "editor": "json",
+      "prefill": [
+        "pinterest.com/poltronafrau",
+        { "url": "https://www.pinterest.com/phatsawat" },
+        "bellinthewoods"
+      ]
+    },
+    "proxyConfig": {
+      "title": "Proxy configuration",
+      "type": "object",
+      "description": "You need to use Apify proxy or custom proxies.",
+      "prefill": {
+          "useApifyProxy": true
+      },
+      "editor": "proxy"
+    }
+  },
+  "required": [
+    "startUrls", "proxyConfig"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+	"name": "pinterest-crawler",
+	"version": "0.0.1",
+	"description": "Get user profile and pins from URLs or names list",
+	"dependencies": {
+		"apify": "^2.2.0",
+		"standard": "^14.3.1"
+	},
+	"devDependencies": {
+		"@apify/eslint-config": "^0.1.3",
+		"eslint": "^7.0.0"
+	},
+	"scripts": {
+		"start": "node main.js",
+		"lint": "standard",
+		"lint:fix": "standard --fix",
+		"test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
+	},
+	"author": "Alexey Udovydchenko",
+	"license": "ISC"
+}
