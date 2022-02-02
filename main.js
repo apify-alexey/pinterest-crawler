@@ -29,7 +29,7 @@ Apify.main(async () => {
     requestList,
     requestQueue,
     proxyConfiguration,
-    maxRequestRetries: 0,
+    // maxRequestRetries: 0,
     handlePageFunction: async (context) => {
       const {
         json,
