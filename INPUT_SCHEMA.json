@@ -15,6 +15,12 @@
         "bellinthewoods"
       ]
     },
+    "rawData": {
+      "title": "Raw data",
+      "type": "boolean",
+      "description": "Scraper will create KeyValue Store for each user name with full native data from Pinterest API.",
+      "default": false
+    },
     "proxyConfig": {
       "title": "Proxy configuration",
       "type": "object",
