@@ -1,4 +1,3 @@
-const { KeyValueStore } = require('apify')
 const Apify = require('apify')
 const _ = require('lodash')
 const omitDeep = require('omit-deep-lodash')
@@ -14,19 +13,25 @@ exports.profileUrlByName = (userName) => {
   return `${apiBaseURL}${profileApiEndpoint}%2F${userName}%2Fpins%2F&data=%7B%22options%22%3A%7B%22field_set_key%22%3A%22profile%22%2C%22username%22%3A%22${userName}%22%7D%2C%22context%22%3A%7B%7D%7D`
 }
 
-const pinsUrlByName = (param) => {
+const decodePathForQuery = (path) => {
+  return encodeURIComponent(path)
+}
+
+const pinsUrlByName = (userName, path) => {
+  const param = decodePathForQuery(path)
   // '/poltronafrau/pins/&data={"options":{"username":"poltronafrau"},"context":{}}'
   const pinsApiEndpoint = '/UserPinsResource/get/?source_url=%2F'  + param +
     '%2Fpins%2F&data=%7B%22options%22%3A%7B%22is_own_profile_pins%22%3Afalse%2C%22username%22%3A%22' +
-    param + '%22%2C%22field_set_key%22%3A%22grid_item%22%2C%22pin_filter%22%3Anull%7D%2C%22context%22%3A%7B%7D%7D&_=' + new Date().getTime()
+    decodePathForQuery(userName) + '%22%2C%22field_set_key%22%3A%22grid_item%22%2C%22pin_filter%22%3Anull%7D%2C%22context%22%3A%7B%7D%7D&_=' + new Date().getTime()
   
   return `${apiBaseURL}${pinsApiEndpoint}`
 }
 
-const pinsUrlByBooksmarks = (param, bookmarks) => {
+const pinsUrlByBooksmarks = (userName, path, bookmarks) => {
+  const param = decodePathForQuery(path)
   const bookmarksQuery = '/UserPinsResource/get/?source_url=%2F' + param +
     '%2Fpins%2F&data=%7B%22options%22%3A%7B%22bookmarks%22%3A%5B%22' + bookmarks +
-    '%22%5D%2C%22is_own_profile_pins%22%3Afalse%2C%22username%22%3A%22' + param +
+    '%22%5D%2C%22is_own_profile_pins%22%3Afalse%2C%22username%22%3A%22' + decodePathForQuery(userName) +
     '%22%2C%22field_set_key%22%3A%22grid_item%22%2C%22pin_filter%22%3Anull%7D%2C%22context%22%3A%7B%7D%7D&_=' + new Date().getTime()
 
   return `${apiBaseURL}${bookmarksQuery}`
@@ -36,17 +41,18 @@ exports.handleStart = async (context) => {
   const {
     json,
     crawler: { requestQueue },
-    request: { url, userData }
+    request: { userData }
   } = context
 
   const profile = json?.resource_response?.data
 
   if (!profile) {
-    log.error(`BrokenProfile ${url}`) // , { json }
-    return
+    throw new Error(`BrokenProfile ${profile}`)
+    // log.error(`BrokenProfile ${url}`) // , { json }
+    // return
   }
 
-  const { userName } = userData
+  const { userName, path } = userData
 
   log.info(`GET profile ${userName}`)
 
@@ -62,7 +68,7 @@ exports.handleStart = async (context) => {
   await Apify.setValue(userName, csvData)
 
   await requestQueue.addRequest({
-    url: pinsUrlByName(userName),
+    url: pinsUrlByName(userName, path),
     userData: {
       ...userData,
       dataType: 'pins'
@@ -80,23 +86,27 @@ exports.handlePins = async (context) => {
 
   const {
     userName,
-    profileUrl,
-    count = 1,
+    path,
+    count = 0,
     maxPinsCnt
   } = userData
 
   const pins = json?.resource_response?.data
 
   if (!pins) {
-    log.error(`BrokenPins ${url}`) // , { json }
-    return
+    throw new Error(`BrokenPins ${path}`)
+    // log.error(`BrokenPins ${url}`) // , { json }
+    // return
   }
 
-  log.info(`GET ${pins?.length} pins for ${userName} ${url}`)
-
-  let csvPins = pins.map(x => {
+  let csvPins = pins.slice(0, maxPinsCnt - count).map(x => {
     if (x?.comments?.data?.length) console.log(x?.comments?.data?.length)
-    let pinRemapped = { profileUrl, image: _.values(x?.images)?.pop(), ...x }
+    let pinRemapped = {
+      sourceUrl: userData?.url,
+      profile: userName,
+      image: _.values(x?.images)?.pop(),
+      ...x
+    }
     pinRemapped.aggregated_pin_data = pinRemapped?.aggregated_pin_data?.aggregated_stats
     pinRemapped = _.omit(pinRemapped, [
       'image_crop', 'done_by_me', 'image_signature', 'pinner', 'debug_info_html', 'tracking_params',
@@ -115,17 +125,18 @@ exports.handlePins = async (context) => {
     return pinRemapped
   })
 
+  log.info(`GET ${count} - ${count + csvPins?.length} pins for ${path}`)
+
   await Apify.pushData(csvPins)
 
   const bookmarks = json?.resource?.options?.bookmarks?.pop()
 
-  const nextCount = count + csvPins.length
+  const nextCount = count + pins.length
   if (bookmarks && bookmarks !== '-end-' && nextCount < maxPinsCnt) {
     await requestQueue.addRequest({
-      url: pinsUrlByBooksmarks(userName, bookmarks),
+      url: pinsUrlByBooksmarks(userName, path, bookmarks),
       userData: {
         ...userData,
-        profileUrl,
         count: nextCount,
         dataType: 'pins'
       }

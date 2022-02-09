@@ -7,11 +7,11 @@ Apify.main(async () => {
   const {
     proxyConfig = { useApifyProxy: true },
     startUrls = [],
-    maxPinsCnt = 100,
+    maxPinsCnt = 50,
     minConcurrency = 1,
     maxConcurrency = 10,
-    maxRequestRetries = 3,
-    requestTimeoutSecs = 30
+    maxRequestRetries = 5,
+    requestTimeoutSecs = 20
 
   } = await Apify.getInput()
 
@@ -22,8 +22,13 @@ Apify.main(async () => {
 
   const startNames = startUrls.map(x => {
     const url = new URL(x && x?.url ? x?.url : x, baseDomain)
-    const userName = url?.pathname?.split('/')?.filter(x => x)?.pop()
-    const userData = { url: url.href, userName, maxPinsCnt }
+    const userName = url?.pathname?.split('/')?.filter(x => x)?.shift()
+    const userData = {
+      url: url.href,
+      userName,
+      maxPinsCnt,
+      path: url?.pathname
+    }
     return { url: profileUrlByName(userName), userData }
   })
 

@@ -29,21 +29,22 @@
       "type": "integer",
       "description": "Max pins per profile",
       "editor": "number",
-      "minimum": 25,
-      "default": 25
+      "minimum": 1,
+      "default": 50
     },
     "maxRequestRetries": {
       "title": "Max Request Retries",
       "type": "integer",
       "description": "Indicates how many times the request is retried",
-      "default": 10,
+      "default": 5,
       "unit": "times"
     },
     "minConcurrency": {
       "title": "Min Concurrency",
       "type": "integer",
       "description": "Sets the minimum concurrency (parallelism) for the crawl",
-      "default": 10,
+      "default": 1,
+      "minimum": 1,
       "maximum": 50,
       "unit": "requests"
     },
@@ -52,6 +53,7 @@
       "type": "integer",
       "description": "Sets the maximum concurrency (parallelism) for the crawl",
       "default": 20,
+      "minimum": 1,
       "maximum": 1000,
       "unit": "requests"
     },
@@ -59,12 +61,12 @@
       "title": "Handle Request Timeout Secs",
       "type": "integer",
       "description": "Timeout in which the function passed as handleRequestFunction needs to finish",
-      "default": 30,
+      "default": 20,
       "maximum": 3600,
       "unit": "seconds"
     }
   },
   "required": [
-    "startUrls", "proxyConfig"
+    "startUrls", "proxyConfig", "maxPinsCnt"
   ]
 }
