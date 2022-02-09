@@ -4,6 +4,7 @@
 	"description": "Get user profile and pins from URLs or names list",
 	"dependencies": {
 		"apify": "^2.2.0",
+		"omit-deep-lodash": "^1.1.6",
 		"standard": "^14.3.1"
 	},
 	"devDependencies": {
