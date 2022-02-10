@@ -100,7 +100,7 @@ exports.handlePins = async (context) => {
   }
 
   let csvPins = pins.slice(0, maxPinsCnt - count).map(x => {
-    if (x?.comments?.data?.length) console.log(x?.comments?.data?.length)
+    // if (x?.comments?.data?.length) console.log(x?.comments?.data?.length)
     let pinRemapped = {
       sourceUrl: userData?.url,
       profile: userName,
@@ -132,7 +132,7 @@ exports.handlePins = async (context) => {
   const bookmarks = json?.resource?.options?.bookmarks?.pop()
 
   const nextCount = count + pins.length
-  if (bookmarks && bookmarks !== '-end-' && nextCount < maxPinsCnt) {
+  if (pins.length > 0 && bookmarks && bookmarks !== '-end-' && nextCount < maxPinsCnt) {
     await requestQueue.addRequest({
       url: pinsUrlByBooksmarks(userName, path, bookmarks),
       userData: {
