@@ -1,72 +1,39 @@
 {
-  "title": "Pinterest Crawler",
-  "description": "Get user profile and pins from URLs or names list",
-  "type": "object",
-  "schemaVersion": 1,
-  "properties": {
-    "startUrls": {
-      "title": "Start names or URLs",
-      "type": "array",
-      "description": "URLs to start with.",
-      "editor": "json",
-      "prefill": [
-        "pinterest.com/poltronafrau",
-        { "url": "https://www.pinterest.com/phatsawat" },
-        "bellinthewoods"
-      ]
-    },
-    "proxyConfig": {
-      "title": "Proxy configuration",
-      "type": "object",
-      "description": "You need to use Apify proxy or custom proxies.",
-      "prefill": {
-          "useApifyProxy": true
+    "title": "Pinterest Crawler",
+    "description": "Get user profile and pins from URLs or names list",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+      "startUrls": {
+        "title": "Pinterest users or URLs",
+        "type": "array",
+        "description": "Names or URLs to start with.",
+        "editor": "stringList",
+        "prefill": [
+          "pinterest.com/poltronafrau",
+          "bellinthewoods"
+        ]
       },
-      "editor": "proxy"
+      "maxPinsCnt": {
+        "title": "Max pins per profile",
+        "type": "integer",
+        "description": "Max pins per profile",
+        "editor": "number",
+        "minimum": 1,
+        "prefill": 50
+      },
+      "proxyConfig": {
+        "sectionCaption": "Proxy configuration",
+        "title": "Proxy configuration",
+        "type": "object",
+        "description": "You need to use Apify proxy or custom proxies.",
+        "prefill": {
+            "useApifyProxy": true
+        },
+        "editor": "proxy"
+      }
     },
-    "maxPinsCnt": {
-      "title": "Max pins per profile",
-      "type": "integer",
-      "description": "Max pins per profile",
-      "editor": "number",
-      "minimum": 1,
-      "default": 50
-    },
-    "maxRequestRetries": {
-      "title": "Max Request Retries",
-      "type": "integer",
-      "description": "Indicates how many times the request is retried",
-      "default": 5,
-      "unit": "times"
-    },
-    "minConcurrency": {
-      "title": "Min Concurrency",
-      "type": "integer",
-      "description": "Sets the minimum concurrency (parallelism) for the crawl",
-      "default": 1,
-      "minimum": 1,
-      "maximum": 50,
-      "unit": "requests"
-    },
-    "maxConcurrency": {
-      "title": "Max Concurrency",
-      "type": "integer",
-      "description": "Sets the maximum concurrency (parallelism) for the crawl",
-      "default": 20,
-      "minimum": 1,
-      "maximum": 1000,
-      "unit": "requests"
-    },
-    "handleRequestTimeoutSecs": {
-      "title": "Handle Request Timeout Secs",
-      "type": "integer",
-      "description": "Timeout in which the function passed as handleRequestFunction needs to finish",
-      "default": 20,
-      "maximum": 3600,
-      "unit": "seconds"
-    }
-  },
-  "required": [
-    "startUrls", "proxyConfig", "maxPinsCnt"
-  ]
-}
+    "required": [
+      "startUrls", "proxyConfig"
+    ]
+  }
