@@ -22,6 +22,12 @@
         "minimum": 1,
         "prefill": 50
       },
+      "scrapeOnlyProfileData": {
+        "title": "Scrape only profile data",
+        "description": "Do not scrape pins, only profile details",
+        "type": "boolean",
+        "default": false
+      },
       "proxyConfig": {
         "sectionCaption": "Proxy configuration",
         "title": "Proxy configuration",

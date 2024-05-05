@@ -1,66 +1,59 @@
-const Apify = require('apify')
-const { baseDomain, profileUrlByName, handleStart, handlePins } = require('./src/routes')
+const Apify = require('apify');
+const crawlee = require('crawlee');
 
-const { utils: { log } } = Apify
+const { profileUrlByName, handleStart, handlePins } = require('./src/routes');
 
-Apify.main(async () => {
-  const {
-    proxyConfig = { useApifyProxy: true },
-    startUrls = [],
-    maxPinsCnt = 50,
-    minConcurrency = 1,
-    maxConcurrency = 10,
-    maxRequestRetries = 5,
-    requestTimeoutSecs = 20
+const { Actor, log } = Apify;
+const { CheerioCrawler } = crawlee;
 
-  } = await Apify.getInput()
+Actor.main(async () => {
+    const input = await Actor.getInput();
+    const {
+        proxyConfig = { useApifyProxy: true },
+        startUrls = [],
+        maxPinsCnt = 50,
+    } = input;
 
-  if (!startUrls?.length) {
-    log.error('No startUrls data', { startUrls })
-    return
-  }
-
-  const startNames = startUrls.map(x => {
-    const url = new URL(x && x?.url ? x?.url : x, baseDomain)
-    const userName = url?.pathname?.split('/')?.filter(x => x)?.shift()
-    const userData = {
-      url: url.href,
-      userName,
-      maxPinsCnt,
-      path: url?.pathname
+    if (!startUrls?.length) {
+        log.error('No startUrls data', { startUrls });
+        return;
     }
-    return { url: profileUrlByName(userName), userData }
-  })
 
-  const requestList = await Apify.openRequestList('start-urls', startNames)
-  const requestQueue = await Apify.openRequestQueue()
-  const proxyConfiguration = await Apify.createProxyConfiguration(proxyConfig)
+    const startNames = startUrls.map((x) => {
+        let url = x?.url || x || '';
+        url = url.replace('http://', '').replace('https://', '');
+        url = url.includes('/') ? `https://${url}` : url;
+        url = new URL(url, 'https://www.pinterest.com');
+        const userName = url?.pathname?.split('/')?.filter(Boolean)?.shift();
+        const userData = {
+            url: url.href,
+            userName,
+            maxPinsCnt,
+            path: url?.pathname,
+        };
+        return { url: profileUrlByName(userName), userData };
+    });
 
-  const crawler = new Apify.CheerioCrawler({
-    requestList,
-    requestQueue,
-    proxyConfiguration,
-    minConcurrency,
-    maxConcurrency,
-    maxRequestRetries,
-    requestTimeoutSecs,
-    handlePageFunction: async (context) => {
-      const {
-        json,
-        request: { url, userData }
-      } = context
+    const proxyConfiguration = await Actor.createProxyConfiguration(proxyConfig);
 
-      if (json && !userData?.dataType) {
-        return handleStart(context)
-      } else if (json && userData?.dataType === 'pins') {
-        return handlePins(context)
-      } else {
-        log.error('UnhandledPage', { url })
-      }
-    }
-  })
+    const crawler = new CheerioCrawler({
+        proxyConfiguration,
+        requestHandler: async (context) => {
+            const {
+                json,
+                request: { url, userData },
+            } = context;
 
-  log.info('Starting the crawl.')
-  await crawler.run()
-  log.info('Crawl finished.')
-})
+            if (json && !userData?.dataType) {
+                return handleStart(context, input);
+            } if (json && userData?.dataType === 'pins') {
+                return handlePins(context);
+            }
+            log.error('UnhandledPage', { url });
+        },
+    });
+
+    log.info('Starting the crawl.');
+    await crawler.run(startNames);
+    log.info('Crawl finished.');
+});
